@@ -273,10 +273,17 @@ async function refreshBurn(){
   }
 }
 async function refreshOpBurn(){
+  const rpcs=["https://mainnet.base.org","https://base-rpc.publicnode.com","https://base.llamarpc.com"];
   const call=async data=>{
-    const r=await j(BASERPC,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({jsonrpc:"2.0",id:1,params:[{to:EVM,data},"latest"]})});
-    const res=r.result; if(!res||res==="0x")return 0n; return BigInt(res);
+    let last;
+    for(const url of rpcs){
+      try{
+        const r=await j(url,{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({jsonrpc:"2.0",id:1,params:[{to:EVM,data},"latest"]})});
+        const res=r.result; if(!res||res==="0x")return 0n; return BigInt(res);
+      }catch(e){last=e}
+    }
+    throw last;
   };
   try{
     const sup=await call("0x18160ddd");
